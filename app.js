@@ -9,4 +9,38 @@ const typed=document.querySelector('#typed');let position=10,back=false;function
 const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');let w,h,points=[],pointer={x:-1000,y:-1000},last=0;
 function resize(){w=innerWidth;h=innerHeight;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);const count=Math.min(115,Math.max(38,Math.floor(w*h/15000)));points=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.65,vy:(Math.random()-.5)*.65,r:Math.random()*3+1}));if(reduced)draw(0)}
 function draw(time){const dt=last?Math.min((time-last)/16.67,2):1;last=time;ctx.clearRect(0,0,w,h);const distance=Math.min(300,w*.22);for(let i=0;i<points.length;i++){const p=points[i];if(!reduced){p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1}for(let j=i+1;j<points.length;j++){const q=points[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<distance){ctx.strokeStyle=`rgba(191,201,204,${(1-d/distance)*.38})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}const pd=Math.hypot(p.x-pointer.x,p.y-pointer.y);if(pd<180){ctx.strokeStyle=`rgba(220,235,230,${(1-pd/180)*.65})`;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(pointer.x,pointer.y);ctx.stroke()}ctx.fillStyle='rgba(48,202,45,.55)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}if(!reduced)requestAnimationFrame(draw)}
-addEventListener('resize',resize);addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY});document.addEventListener('pointerleave',()=>{pointer.x=-1000;pointer.y=-1000});resize();if(!reduced)requestAnimationFrame(draw);
+const touchCursor=document.createElement('div');
+touchCursor.className='touch-cursor';
+touchCursor.setAttribute('aria-hidden','true');
+document.body.append(touchCursor);
+let activeTouch=null;
+function updatePointer(e){
+  pointer.x=e.clientX;pointer.y=e.clientY;
+  const touching=e.pointerType==='touch'||e.pointerType==='pen';
+  touchCursor.classList.toggle('active',touching);
+  touchCursor.style.left=pointer.x+'px';
+  touchCursor.style.top=pointer.y+'px';
+  if(reduced)draw(0);
+}
+function clearPointer(){
+  activeTouch=null;pointer.x=-1000;pointer.y=-1000;
+  touchCursor.classList.remove('active');
+  if(reduced)draw(0);
+}
+addEventListener('pointerdown',e=>{
+  if(!e.isPrimary)return;
+  if(e.pointerType!=='mouse')activeTouch=e.pointerId;
+  updatePointer(e);
+});
+addEventListener('pointermove',e=>{
+  if(!e.isPrimary)return;
+  if(e.pointerType!=='mouse'&&e.pointerId!==activeTouch)return;
+  updatePointer(e);
+});
+addEventListener('pointerup',e=>{if(e.pointerId===activeTouch)clearPointer()});
+addEventListener('pointercancel',e=>{if(e.pointerId===activeTouch)clearPointer()});
+addEventListener('blur',clearPointer);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)clearPointer()});
+document.addEventListener('pointerleave',clearPointer);
+addEventListener('resize',resize);
+resize();if(!reduced)requestAnimationFrame(draw);
