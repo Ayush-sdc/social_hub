@@ -1,0 +1,14 @@
+RESUME SOURCE: Ayush-sdc/Resume
+
+The portfolio embeds https://ayush-sdc.github.io/Resume/.
+The viewer and Download button are maintained inside that repository.
+Replace resume.pdf in the Resume repository and commit. Wait for Pages to deploy.
+No portfolio changes are needed for future PDF updates.
+
+Double-click Update Resume.cmd here to open the GitHub upload page.
+Upload the PDF as resume.pdf (same name), then commit.
+For a local PDF picker, use Update Resume.cmd inside your local Resume repository instead.
+
+Enable GitHub Pages in Resume first: main branch, /(root).
+config.js resumeViewer contains the viewer URL; links.resume contains the PDF URL.
+No PDF is bundled with this setup; upload your actual document.
